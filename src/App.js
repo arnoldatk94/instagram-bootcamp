@@ -1,8 +1,10 @@
 import React from "react";
-import { onChildAdded, push, ref, set } from "firebase/database";
+import { getDatabase, onChildAdded, push, ref, set } from "firebase/database";
 import { database } from "./firebase";
 import logo from "./logo.png";
 import "./App.css";
+import "bootstrap/dist/css/bootstrap.min.css";
+import { ListGroup, Button, Form } from "react-bootstrap";
 
 // Save the Firebase message folder name as a constant to avoid bugs due to misspelling
 const DB_MESSAGES_KEY = "messages";
@@ -14,8 +16,20 @@ class App extends React.Component {
     // When Firebase changes, update local state, which will update local UI
     this.state = {
       messages: [],
+      input: "",
+      timestamp: "",
     };
   }
+
+  handleChange = (e) => {
+    // To enable input to uptimestamp changes in real time
+    let { name, value } = e.target;
+    let currTimestamp = new Date().toString().split(" G")[0];
+    this.setState({
+      [name]: value,
+      timestamp: currTimestamp,
+    });
+  };
 
   componentDidMount() {
     const messagesRef = ref(database, DB_MESSAGES_KEY);
@@ -33,23 +47,46 @@ class App extends React.Component {
   writeData = () => {
     const messageListRef = ref(database, DB_MESSAGES_KEY);
     const newMessageRef = push(messageListRef);
-    set(newMessageRef, "abc");
+    set(newMessageRef, {
+      message: this.state.input,
+      timestamp: this.state.timestamp,
+    });
   };
 
   render() {
     // Convert messages in state to message JSX elements to render
+
     let messageListItems = this.state.messages.map((message) => (
-      <li key={message.key}>{message.val}</li>
+      <ListGroup as="ol" key={message.key}>
+        <ListGroup.Item variant="info">
+          {message.val.message}. Sent on {message.val.timestamp}
+        </ListGroup.Item>
+      </ListGroup>
     ));
+    const disableInput = this.state.input.length <= 1;
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <p>
-            Edit <code>src/App.js</code> and save to reload.
-          </p>
-          {/* TODO: Add input field and add text input as messages in Firebase */}
-          <button onClick={this.writeData}>Send</button>
+          <div className="flex-container">
+            <Form.Group>
+              <Form.Control
+                type="text"
+                name="input"
+                placeholder="Send chat"
+                value={this.state.input}
+                onChange={this.handleChange}
+              />
+            </Form.Group>
+
+            <Button
+              disabled={disableInput}
+              variant="success"
+              onClick={this.writeData}
+            >
+              Send
+            </Button>
+          </div>
           <ol>{messageListItems}</ol>
         </header>
       </div>
