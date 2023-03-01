@@ -4,7 +4,7 @@ import { database } from "./firebase";
 import logo from "./logo.png";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { ListGroup, Button, Form } from "react-bootstrap";
+import { ListGroup, Button, Form, Container, Row } from "react-bootstrap";
 
 // Save the Firebase message folder name as a constant to avoid bugs due to misspelling
 const DB_MESSAGES_KEY = "messages";
@@ -25,6 +25,7 @@ class App extends React.Component {
     // To enable input to uptimestamp changes in real time
     let { name, value } = e.target;
     let currTimestamp = new Date().toString().split(" G")[0];
+    currTimestamp = currTimestamp.slice(0, -3);
     this.setState({
       [name]: value,
       timestamp: currTimestamp,
@@ -57,12 +58,12 @@ class App extends React.Component {
     // Convert messages in state to message JSX elements to render
 
     let messageListItems = this.state.messages.map((message) => (
-      <ListGroup as="ol" key={message.key}>
-        <ListGroup.Item variant="info">
-          {message.val.message}. Sent on {message.val.timestamp}
-        </ListGroup.Item>
-      </ListGroup>
+      <div className="container" key={message.key}>
+        <div className="timestamp">{message.val.timestamp}</div>
+        <div className="message">{message.val.message}.</div>
+      </div>
     ));
+
     const disableInput = this.state.input.length <= 1;
     return (
       <div className="App">
