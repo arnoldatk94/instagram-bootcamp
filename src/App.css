@@ -1,5 +1,7 @@
 .App {
   text-align: center;
+  background-color: #282c34;
+  min-height: 100vh;
 }
 
 .App-logo {
@@ -10,7 +12,6 @@
 }
 
 .App-header {
-  background-color: #282c34;
   min-height: 100vh;
   display: flex;
   flex-direction: column;
@@ -45,4 +46,9 @@
 .message {
   font-weight: 400;
   color: #3f587a;
+}
+
+.picture {
+  width: 10em;
+  height: auto;
 }
