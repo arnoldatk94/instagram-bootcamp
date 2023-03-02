@@ -10,7 +10,15 @@ import {
 import logo from "./logo.png";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { ListGroup, Button, Form, Container, Row } from "react-bootstrap";
+import { Button, Form } from "react-bootstrap";
+import PostCreator from "./Components/PostCreator";
+import Newsfeed from "./Components/NewsFeed";
+import {
+  getAuth,
+  createUserWithEmailAndPassword,
+  signInWithEmailAndPassword,
+} from "firebase/auth";
+import LogInPage from "./Components/LogInPage";
 
 // Save the Firebase message folder name as a constant to avoid bugs due to misspelling
 const DB_MESSAGES_KEY = "messages";
@@ -23,6 +31,8 @@ class App extends React.Component {
     // Initialise empty messages array in state to keep local state in sync with Firebase
     // When Firebase changes, update local state, which will update local UI
     this.state = {
+      userLoggedIn: false,
+      currentUser: "",
       messages: [],
       input: "",
       timestamp: "",
@@ -31,17 +41,6 @@ class App extends React.Component {
       textInputValue: "",
     };
   }
-
-  handleChange = (e) => {
-    // To enable input to uptimestamp changes in real time
-    let { name, value } = e.target;
-    let currTimestamp = new Date().toString().split(" G")[0];
-    currTimestamp = currTimestamp.slice(0, -3);
-    this.setState({
-      [name]: value,
-      timestamp: currTimestamp,
-    });
-  };
 
   componentDidMount() {
     const messagesRef = ref(database, DB_MESSAGES_KEY);
@@ -55,101 +54,48 @@ class App extends React.Component {
     });
   }
 
-  handleFileChange = (e) =>
-    this.setState({
-      fileInputFile: e.target.files[0],
-      fileInputValue: e.target.value,
-    });
-
-  handleSubmit = (e) => {
-    // Creates a reference to the bucket and save to storage
-    const imageRef = storageRef(
-      storage,
-      `${STORAGE_FILE_KEY}/${this.state.fileInputFile.name}`
-    );
-
-    // This block is completely redundant for storage
-    // const newImageRef = push(imageRef);
-    // set(newImageRef, {
-    //   file: this.state.fileInputFile,
-    // });
-
-    uploadBytes(imageRef, this.state.fileInputFile).then((snapshot) => {
-      console.log(snapshot);
-      console.log(this.state);
-      getDownloadURL(imageRef, this.state.fileInputFile).then((url) => {
-        console.log("URL", url);
-
-        this.writeData(url);
-      });
-    });
+  logIn = (e) => {
+    this.setState({ userLoggedIn: true });
   };
 
-  // Note use of array fields syntax to avoid having to manually bind this method to the class
-  writeData = (url) => {
-    const messageListRef = ref(database, DB_MESSAGES_KEY);
-    const newMessageRef = push(messageListRef);
-    set(newMessageRef, {
-      message: this.state.input,
-      timestamp: this.state.timestamp,
-      url: url,
-    });
+  logOut = (e) => {
+    this.setState({ userLoggedIn: false });
+  };
+
+  logCurrentUser = (user) => {
     this.setState({
-      input: "",
-      timestamp: "",
-      fileInputFile: null,
-      fileInputValue: "",
-      textInputValue: "",
+      currentUser: user,
     });
   };
 
   render() {
-    // Convert messages in state to message JSX elements to render
-    console.log(this.state.fileInputFile);
-    let messageListItems = this.state.messages.map((message) => (
-      <div className="container" key={message.key}>
-        <div className="timestamp">{message.val.timestamp}</div>
-        <div className="message">{message.val.message}.</div>
-        <div className="picture">
-          {message.val.url ? (
-            <img src={message.val.url} alt={message.val.url} width="50%" />
-          ) : (
-            "No image"
-          )}
-        </div>
-      </div>
-    ));
-
-    const disableInput =
-      this.state.input.length <= 1 || this.state.fileInputFile == null;
+    console.log("Current User: " + this.state.currentUser);
     return (
       <div className="App">
         <header className="App-header">
           <img src={logo} className="App-logo" alt="logo" />
-          <div className="flex-container">
-            <Form.Group>
-              <Form.Control
-                type="file"
-                value={this.state.fileInputValue}
-                onChange={this.handleFileChange}
-              ></Form.Control>
-              <Form.Control
-                type="text"
-                name="input"
-                placeholder="Send Post"
-                value={this.state.input}
-                onChange={this.handleChange}
+          {this.state.userLoggedIn ? (
+            <div>
+              <Button variant="outline-danger" onClick={this.logOut}>
+                Log Out
+              </Button>
+              <PostCreator
+                DB_MESSAGES_KEY={DB_MESSAGES_KEY}
+                STORAGE_FILE_KEY={STORAGE_FILE_KEY}
+                currentUser={this.state.currentUser}
               />
-            </Form.Group>
-            <Button
-              disabled={disableInput}
-              variant="success"
-              onClick={this.handleSubmit}
-            >
-              Send
-            </Button>
-          </div>
-          <ol>{messageListItems}</ol>
+            </div>
+          ) : (
+            <LogInPage
+              handleSignIn={this.handleSignIn}
+              handleSignUp={this.handleSignUp}
+              logIn={this.logIn}
+              logCurrentUser={this.logCurrentUser}
+            />
+          )}
+
+          {/* <div>{messageListItems}</div> */}
+          <Newsfeed messages={this.state.messages} />
         </header>
       </div>
     );
