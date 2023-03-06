@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { getDatabase, onChildAdded, push, ref, set } from "firebase/database";
 import { database, storage } from "./firebase";
 import {
@@ -25,81 +25,61 @@ const DB_MESSAGES_KEY = "messages";
 // Saving firebase folder for image storage
 const STORAGE_FILE_KEY = "images";
 
-class App extends React.Component {
-  constructor(props) {
-    super(props);
-    // Initialise empty messages array in state to keep local state in sync with Firebase
-    // When Firebase changes, update local state, which will update local UI
-    this.state = {
-      userLoggedIn: false,
-      currentUser: "",
-      messages: [],
-      input: "",
-      timestamp: "",
-      fileInputFile: null,
-      fileInputValue: "",
-      textInputValue: "",
-    };
-  }
+export default function App(props) {
+  const [userLoggedIn, setUserLoggedIn] = useState(false);
+  const [currentUser, setCurrentUser] = useState("");
+  const [messages, setMessages] = useState([]);
+  const [input, setInput] = useState("");
+  const [timestamp, setTimestamp] = useState("");
+  const [fileInputFile, setFileInputFile] = useState(null);
+  const [fileInputValue, setfileInputValue] = useState("");
+  const [textInputValue, setTextInputValue] = useState("");
 
-  componentDidMount() {
+  useEffect(() => {
     const messagesRef = ref(database, DB_MESSAGES_KEY);
-    // onChildAdded will return data for every child at the reference and every subsequent new child
     onChildAdded(messagesRef, (data) => {
-      // Add the subsequent child to local component state, initialising a new array to trigger re-render
-      this.setState((state) => ({
-        // Store message key so we can use it as a key in our list items when rendering messages
-        messages: [...state.messages, { key: data.key, val: data.val() }],
-      }));
+      setMessages((prevMessages) => [
+        ...prevMessages,
+        { key: data.key, val: data.val() },
+      ]);
     });
-  }
+  }, []); // make sure this only runs once
 
-  logIn = (e) => {
-    this.setState({ userLoggedIn: true });
+  const logIn = (e) => {
+    setUserLoggedIn(true);
   };
 
-  logOut = (e) => {
-    this.setState({ userLoggedIn: false });
+  const logOut = (e) => {
+    setUserLoggedIn(false);
   };
 
-  logCurrentUser = (user) => {
-    this.setState({
-      currentUser: user,
-    });
+  const logCurrentUser = (user) => {
+    setCurrentUser(user);
   };
 
-  render() {
-    console.log("Current User: " + this.state.currentUser);
-    return (
-      <div className="App">
-        <header className="App-header">
-          <img src={logo} className="App-logo" alt="logo" />
-          {this.state.userLoggedIn ? (
-            <div>
-              <Button variant="outline-danger" onClick={this.logOut}>
-                Log Out
-              </Button>
-              <PostCreator
-                DB_MESSAGES_KEY={DB_MESSAGES_KEY}
-                STORAGE_FILE_KEY={STORAGE_FILE_KEY}
-                currentUser={this.state.currentUser}
-              />
-            </div>
-          ) : (
-            <LogInPage
-              handleSignIn={this.handleSignIn}
-              handleSignUp={this.handleSignUp}
-              logIn={this.logIn}
-              logCurrentUser={this.logCurrentUser}
+  console.log(messages);
+
+  return (
+    <div className="App">
+      <header className="App-header">
+        <img src={logo} className="App-logo" alt="logo" />
+        {userLoggedIn ? (
+          <div>
+            <Button variant="outline-danger" onClick={logOut}>
+              Log Out
+            </Button>
+            <PostCreator
+              DB_MESSAGES_KEY={DB_MESSAGES_KEY}
+              STORAGE_FILE_KEY={STORAGE_FILE_KEY}
+              currentUser={currentUser}
             />
-          )}
+          </div>
+        ) : (
+          <LogInPage logIn={logIn} logCurrentUser={logCurrentUser} />
+        )}
 
-          {/* <div>{messageListItems}</div> */}
-          <Newsfeed messages={this.state.messages} />
-        </header>
-      </div>
-    );
-  }
+        <Newsfeed messages={messages} />
+      </header>
+    </div>
+  );
 }
-
-export default App;

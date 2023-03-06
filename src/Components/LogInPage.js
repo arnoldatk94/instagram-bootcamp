@@ -1,4 +1,3 @@
-import React from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Button, Form } from "react-bootstrap";
 import {
@@ -6,33 +5,16 @@ import {
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
+import { useState } from "react";
 
-class LogInPage extends React.Component {
-  constructor(props) {
-    super(props);
+export default function LogInPage(props) {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
-    this.state = {
-      userEmail: "",
-      userPassword: "",
-    };
-  }
-
-  handleChange = (e) => {
-    // To enable input to uptimestamp changes in real time
-    let { name, value } = e.target;
-    this.setState({
-      [name]: value,
-    });
-  };
-
-  handleSignUp = (e) => {
+  const handleSignUp = (e) => {
     const auth = getAuth();
     // console.log(auth);
-    createUserWithEmailAndPassword(
-      auth,
-      this.state.userEmail,
-      this.state.userPassword
-    )
+    createUserWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in
         const user = userCredential.user;
@@ -48,21 +30,17 @@ class LogInPage extends React.Component {
       });
   };
 
-  handleSignIn = (e) => {
+  const handleSignIn = (e) => {
     const auth = getAuth();
-    signInWithEmailAndPassword(
-      auth,
-      this.state.userEmail,
-      this.state.userPassword
-    )
+    signInWithEmailAndPassword(auth, email, password)
       .then((userCredential) => {
         // Signed in
         const user = userCredential.user;
         // ...
 
-        this.props.logIn();
+        props.logIn();
         let userName = user.email.split("@")[0];
-        this.props.logCurrentUser(userName);
+        props.logCurrentUser(userName);
       })
       .catch((error) => {
         const errorCode = error.code;
@@ -72,49 +50,34 @@ class LogInPage extends React.Component {
       });
   };
 
-  render() {
-    const disableInput =
-      this.state.userEmail.length < 0 && this.state.userPassword.length < 0;
-    const disableLogOut = !this.props.userLoggedIn;
+  const disableInput = email.length < 0 && password.length < 0;
+  const disableLogOut = !props.userLoggedIn;
 
-    // console.log(this.state);
-    if (this.state.userLoggedIn) console.log(this.state.userLoggedIn);
-    return (
-      <div>
-        <Form.Group>
-          <Form.Label>Sign in to post!</Form.Label>
-          <Form.Control
-            type="text"
-            name="userEmail"
-            placeholder="email"
-            value={this.state.userEmail}
-            onChange={this.handleChange}
-          />
-          <Form.Control
-            type="text"
-            name="userPassword"
-            placeholder="password"
-            value={this.state.userPassword}
-            onChange={this.handleChange}
-          />
-        </Form.Group>
-        <Button
-          disabled={disableInput}
-          variant="info"
-          onClick={this.handleSignUp}
-        >
-          Sign up
-        </Button>
-        <Button
-          disabled={disableInput}
-          variant="success"
-          onClick={this.handleSignIn}
-        >
-          Sign In
-        </Button>
-      </div>
-    );
-  }
+  return (
+    <div>
+      <Form.Group>
+        <Form.Label>Sign in to post!</Form.Label>
+        <Form.Control
+          type="text"
+          name="email"
+          placeholder="email"
+          value={email}
+          onChange={(e) => setEmail(e.target.value)}
+        />
+        <Form.Control
+          type="text"
+          name="password"
+          placeholder="password"
+          value={password}
+          onChange={(e) => setPassword(e.target.value)}
+        />
+      </Form.Group>
+      <Button disabled={disableInput} variant="info" onClick={handleSignUp}>
+        Sign up
+      </Button>
+      <Button disabled={disableInput} variant="success" onClick={handleSignIn}>
+        Sign In
+      </Button>
+    </div>
+  );
 }
-
-export default LogInPage;
