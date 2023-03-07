@@ -8,8 +8,7 @@ import { Button, Form } from "react-bootstrap";
 import PostCreator from "./Components/PostCreator";
 import Newsfeed from "./Components/NewsFeed";
 import LogInPage from "./Components/LogInPage";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
-import ErrorPage from "./Components/ErrorPage";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 // Save the Firebase message folder name as a constant to avoid bugs due to misspelling
 const DB_MESSAGES_KEY = "messages";
@@ -31,6 +30,14 @@ export default function App() {
     });
   }, []); // make sure this only runs once
 
+  const logIn = (e) => {
+    setUserLoggedIn(true);
+  };
+
+  const logOut = (e) => {
+    setUserLoggedIn(false);
+  };
+
   const logCurrentUser = (user) => {
     setCurrentUser(user);
   };
@@ -38,39 +45,36 @@ export default function App() {
   return (
     <div className="App">
       <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-
         <BrowserRouter>
+          <img src={logo} className="App-logo" alt="logo" />
           <Routes>
-            <Route
-              path="/"
-              element={<LogInPage logCurrentUser={logCurrentUser} />}
-            >
+            {userLoggedIn ? (
+              <div>
+                <Button variant="outline-danger" onClick={logOut}>
+                  Log Out
+                </Button>
+                <Route
+                  path="PostCreator"
+                  element={
+                    <PostCreator
+                      DB_MESSAGES_KEY={DB_MESSAGES_KEY}
+                      STORAGE_FILE_KEY={STORAGE_FILE_KEY}
+                      currentUser={currentUser}
+                    />
+                  }
+                />
+              </div>
+            ) : (
               <Route
-                path="newsfeed"
-                element={<Newsfeed messages={messages} />}
+                path="logIn"
+                element={
+                  <LogInPage logIn={logIn} logCurrentUser={logCurrentUser} />
+                }
               />
-            </Route>
-
-            <Route path="*" element={<ErrorPage />} />
+            )}
+            <Route path="Newsfeed" element={<Newsfeed messages={messages} />} />
           </Routes>
         </BrowserRouter>
-
-        {/* {userLoggedIn ? (
-          <div>
-            <Button variant="outline-danger" onClick={logOut}>
-              Log Out
-            </Button>
-            <PostCreator
-              DB_MESSAGES_KEY={DB_MESSAGES_KEY}
-              STORAGE_FILE_KEY={STORAGE_FILE_KEY}
-              currentUser={currentUser}
-            />
-          </div>
-        ) : (
-          <LogInPage logIn={logIn} logCurrentUser={logCurrentUser} />
-        )}
-        <Newsfeed messages={messages} /> */}
       </header>
     </div>
   );

@@ -1,4 +1,5 @@
 import React from "react";
+import { Outlet } from "react-router-dom";
 
 export default function Newsfeed(props) {
   let messageListItems = props.messages.map((message) => (
@@ -17,5 +18,10 @@ export default function Newsfeed(props) {
     </div>
   ));
 
-  return <div>{messageListItems}</div>;
+  return (
+    <div>
+      {messageListItems}
+      <Outlet />
+    </div>
+  );
 }
