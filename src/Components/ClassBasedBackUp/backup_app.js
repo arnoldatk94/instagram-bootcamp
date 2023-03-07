@@ -1,6 +1,6 @@
 import React from "react";
 import { getDatabase, onChildAdded, push, ref, set } from "firebase/database";
-import { database, storage } from "./firebase";
+import { database, storage } from "../../firebase";
 import {
   getDownloadURL,
   getStorage,
@@ -11,14 +11,14 @@ import logo from "./logo.png";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Button, Form } from "react-bootstrap";
-import PostCreator from "./Components/PostCreator";
-import Newsfeed from "./Components/NewsFeed";
+import PostCreator from "../PostCreator";
+import Newsfeed from "../NewsFeed";
 import {
   getAuth,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
 } from "firebase/auth";
-import LogInPage from "./Components/LogInPage";
+import LogInPage from "../LogInPage";
 
 // Save the Firebase message folder name as a constant to avoid bugs due to misspelling
 const DB_MESSAGES_KEY = "messages";
