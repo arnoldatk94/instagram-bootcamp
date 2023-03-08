@@ -1,14 +1,13 @@
 import React, { useEffect, useState } from "react";
 import { getDatabase, onChildAdded, push, ref, set } from "firebase/database";
-import { database, storage } from "./firebase";
+import { onAuthStateChanged, signOut } from "firebase/auth";
+import { database, storage, auth } from "./firebase";
 import logo from "./logo.png";
 import "./App.css";
 import "bootstrap/dist/css/bootstrap.min.css";
-import { Button, Form } from "react-bootstrap";
-import PostCreator from "./Components/PostCreator";
 import Newsfeed from "./Components/NewsFeed";
 import LogInPage from "./Components/LogInPage";
-import { BrowserRouter, Routes, Route, Outlet } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import ErrorPage from "./Components/ErrorPage";
 
 // Save the Firebase message folder name as a constant to avoid bugs due to misspelling
@@ -22,6 +21,7 @@ export default function App() {
   const [messages, setMessages] = useState([]);
 
   useEffect(() => {
+    console.log("User Signed in? " + userLoggedIn);
     const messagesRef = ref(database, DB_MESSAGES_KEY);
     onChildAdded(messagesRef, (data) => {
       setMessages((prevMessages) => [

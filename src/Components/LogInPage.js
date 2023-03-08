@@ -1,19 +1,36 @@
+import { useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import { Button, Form } from "react-bootstrap";
 import {
   getAuth,
+  onAuthStateChanged,
   createUserWithEmailAndPassword,
   signInWithEmailAndPassword,
+  signOut,
 } from "firebase/auth";
 import { useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import PostCreator from "./PostCreator";
+import { auth } from "../firebase";
 
 export default function LogInPage(props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [userLoggedIn, setUserLoggedIn] = useState(false);
   const navigate = useNavigate();
+
+  useEffect(() => {
+    onAuthStateChanged(auth, (user) => {
+      if (user) {
+        setUserLoggedIn(true);
+        console.log("Logged in User");
+        console.log(user);
+        navigate("/newsfeed");
+      } else {
+        console.log("user not logged in");
+      }
+    });
+  }, [auth]);
 
   const handleSignUp = (e) => {
     const auth = getAuth();
@@ -44,7 +61,7 @@ export default function LogInPage(props) {
       .then((userCredential) => {
         // Signed in
         const user = userCredential.user;
-        // ...
+        console.log("Sign In function running");
         setUserLoggedIn(true);
         logIn();
         let userName = user.email.split("@")[0];
@@ -61,15 +78,18 @@ export default function LogInPage(props) {
       });
   };
 
-  const logIn = (e) => {
-    setUserLoggedIn(true);
-    setEmail("");
-    setPassword("");
+  const logIn = () => {
+    signInWithEmailAndPassword(auth, email, password).then((user) => {
+      console.log(user);
+    });
   };
 
-  const logOut = (e) => {
-    setUserLoggedIn(false);
-    navigate("/");
+  const logOut = () => {
+    signOut(auth).then(() => {
+      setUserLoggedIn(false);
+      setEmail("");
+      navigate("/");
+    });
   };
 
   const disableInput = email.length < 0 && password.length < 0;
